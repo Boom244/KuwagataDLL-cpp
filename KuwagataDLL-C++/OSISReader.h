@@ -34,6 +34,7 @@ namespace KuwagataDLL {
 		std::vector<int>* SplitCommaSeparatedVerses(std::vector<String> elements);
 		bool ProcessedCrossBookReferences(String currentRequest, std::vector<int>* returnList);
 		bool ProcessedWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber);
+		void HandleHyphenatedReference(std::vector<String>* firstandPossSecond, String firstElement, std::vector<int>* returnList);
 	};
 }
 
