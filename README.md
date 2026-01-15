@@ -1,0 +1,1 @@
+# KuwagataDLL-C++
