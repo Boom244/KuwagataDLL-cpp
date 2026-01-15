@@ -30,10 +30,10 @@ namespace KuwagataDLL {
 		String Version;
 		JSON verses;
 		std::vector<int>* GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate);
-		std::vector<int>* GetVersesBetweenChapters(bool multiWordBook, std::vector<String> elements, std::vector<String> tokens);
-		std::vector<int>* SplitCommaSeparatedVerses(std::vector<String> elements, bool multiWordBook);
-		bool ProcessCrossBookReferences(String currentRequest, std::vector<int>* returnList);
-		bool ProcessWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber);
+		std::vector<int>* GetVersesBetweenChapters(std::vector<String> elements, std::vector<String> tokens);
+		std::vector<int>* SplitCommaSeparatedVerses(std::vector<String> elements);
+		bool ProcessedCrossBookReferences(String currentRequest, std::vector<int>* returnList);
+		bool ProcessedWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber);
 	};
 }
 
