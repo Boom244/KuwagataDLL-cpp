@@ -106,6 +106,7 @@ namespace KuwagataDLL {
                  std::vector<int>* allMarkers = GetVersesBetweenMarkers(startPos, endPos+1, BibleIndexes::Chapter, true);
                  returnList->insert(returnList->end(), allMarkers->begin(), allMarkers->end());
                  delete potentialCrossBookReference;
+                 delete allMarkers;
 
                  return true; //continue in disguise!
              }
@@ -201,13 +202,12 @@ namespace KuwagataDLL {
 
             if (firstandPossSecond->size() >= 2) //If a second element exists, branch and get all the verses between the first and second number. 
             {
-                std::vector<String>* nums = Util::split(chapterAndVerse->at(1), '-');
-
 
                 if (firstandPossSecond->at(1).find(':') != String::npos) // If the split string contains a reference to another verse, in another chapter:
                 {
                     std::vector<int>* csv = GetVersesBetweenChapters(*elements, *firstandPossSecond);
                     returnList->insert(returnList->end(), csv->begin(), csv->end());
+                    delete csv;
                 }
                 else
                 {
@@ -339,6 +339,7 @@ namespace KuwagataDLL {
 			std::vector<int>* v = GetReferencesFromString(submittanceString, false);
 			ret->insert(ret->end(), v->begin(), v->end());
 		}
+        delete subElements;
 		return ret;
 	}
 
