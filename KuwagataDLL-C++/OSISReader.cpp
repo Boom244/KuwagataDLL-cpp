@@ -103,12 +103,8 @@ namespace KuwagataDLL {
              {
                  int startPos = GetReferencesFromString((*potentialCrossBookReference)[0], true)->at(0);
                  int endPos = GetReferencesFromString((*potentialCrossBookReference)[1], true)->at(0);
-
-                 for (int GVBMref : *GetVersesBetweenMarkers(startPos, endPos, BibleIndexes::Chapter, true))
-                 {
-                     returnList->push_back(GVBMref);
-                 }
-                 returnList->push_back(endPos);
+                 std::vector<int>* allMarkers = GetVersesBetweenMarkers(startPos, endPos+1, BibleIndexes::Chapter, true);
+                 returnList->insert(returnList->end(), allMarkers->begin(), allMarkers->end());
                  delete potentialCrossBookReference;
 
                  return true; //continue in disguise!
@@ -225,12 +221,13 @@ namespace KuwagataDLL {
                     startPosition = std::format("{};{}", startPosition, endPosition);
 
                     std::vector<int>* numRefs = GetReferencesFromString(startPosition, false);
-                    for (int k = numRefs->at(0); k < numRefs->at(1) + 1; k++) //Loop through the resulting numbers
-                    {
-                        returnList->push_back(k);
-                    }
+                    std::vector<int>* refList = GetVersesBetweenMarkers(numRefs->at(0), numRefs->at(1) + 1,
+                        BibleIndexes::Chapter, false);
+
+                    returnList->insert(returnList->end(), refList->begin(), refList->end());
 
                     delete numRefs;
+                    delete refList;
                     delete firstChapterAndVerse;
                 }
 
