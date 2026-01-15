@@ -32,6 +32,105 @@ namespace KuwagataDLL {
 	}
 
 
+    bool PreprocessRequest(String& currentRequest, std::vector<String>*& outElements) {
+        //---CONCERN 1: Flushing the garbage out of a request and splitting it up.---
+
+            //Error catch that happens if someone does something like put a space between separated references so I'm doing this:
+        while (currentRequest.at(0) == ' ')
+        {
+            currentRequest = currentRequest.substr(1);
+        }
+
+        //Stylistic choice; If you end a reference with a semicolon and put nothing after it, then an error pops up.
+        if (currentRequest == "")
+        {
+            return true;
+        }
+
+        //First, split the resulting string further by its spaces to get the book and chapter/verses. 
+        outElements = Util::split(currentRequest, ' ');
+
+        //END CONCERN
+        return false;
+    }
+
+    bool DiscernReferenceBook(int* returnNumber, std::vector<String>* elements, String currentRequest) {
+        
+        //--CONCERN 2: DISCERNING THE BOOK
+            //Second, turn the first element of *that* resulting string into a number using BibleIndexes' GetBibleIndexFromArray.
+        *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book; //x1000000 because that's the scheme the JSON uses.
+
+        if (BibleIndexes::IsOneChapterBook(*returnNumber) && currentRequest.find(":") == std::string::npos) //if it's a one-chapter book being referenced knowingly by the user (e.g: Philemon 24 instead of Philemon 1:24)
+        {
+            (*elements)[1] = "1:" + (*elements)[1]; //Simple solutions to simple problems:
+        }
+
+        //Accomodations for multi-word books
+        if (*returnNumber == 0)
+        {
+            *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0) + " " + elements->at(1)) * BibleIndexes::Book;
+            return true; //flag the next subscript to shift down one element
+        }
+        return false;
+        //END CONCERN
+    }
+
+     bool IsCompoundReference(std::vector<String>* elements, bool multiWordBook) {
+        //CONCERN 2.1 -- COMPOUND REFERENCE?
+            //Sub-concerns will be early-terminating concerns that terminate the loop iteration early and move next.
+
+            //New clause; Sometimes you might want to reference a bunch of new verses within the same book, a la, for example,
+            //"Jonah 1:3-4,14,17,2:1". So, here's what we're gonna do:
+        if (elements->size() > (multiWordBook ? 2 : 1))
+        {
+            if (elements->at(multiWordBook ? 2 : 1).find(",") != String::npos)
+            {
+                return true;
+            }
+        }
+        return false;
+        //END CONCERN
+    }
+
+     bool OSISReader::ProcessCrossBookReferences(String currentRequest, std::vector<int>* returnList) {
+         //CONCERN 2.3 -- CROSS-BOOK REFERENCES
+         std::vector<String>* potentialCrossBookReference = Util::split(currentRequest, '-');
+         if (potentialCrossBookReference->size() > 1)
+         {
+             if (BibleIndexes::GetBibleIndexFromArray((*potentialCrossBookReference)[0]) != 0 && BibleIndexes::GetBibleIndexFromArray((*potentialCrossBookReference)[1]) != 0)
+             {
+                 int startPos = GetReferencesFromString((*potentialCrossBookReference)[0], true)->at(0);
+                 int endPos = GetReferencesFromString((*potentialCrossBookReference)[1], true)->at(0);
+
+                 for (int GVBMref : *GetVersesBetweenMarkers(startPos, endPos, BibleIndexes::Chapter, true))
+                 {
+                     returnList->push_back(GVBMref);
+                 }
+                 returnList->push_back(endPos);
+                 delete potentialCrossBookReference;
+
+                 return true; //continue in disguise!
+             }
+         }
+         return false;
+
+         //END CONCERN
+    }
+
+     bool OSISReader::ProcessWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber) {
+         //CONCERN 2.4 -- WHOLE-CHAPTER REFERENCES
+
+            //If there's just a chapter and no verse:
+         if (chapterAndVerse->size() == 1)
+         {
+             int nextChapter = BibleIndexes::IncreaseBibleReference(returnNumber, BibleIndexes::Chapter);
+             std::vector<int>* chapter = GetVersesBetweenMarkers(returnNumber + 1, nextChapter, BibleIndexes::Verse, false);
+             returnList->insert(returnList->end(), chapter->begin(), chapter->end());
+             delete chapter;
+             return true;
+         }
+         return false;
+    }
 
 	std::vector<int>* OSISReader::GetReferencesFromString(String request, bool recursive)
 	{
@@ -41,124 +140,53 @@ namespace KuwagataDLL {
         //Next, initialize an array of numbers to return after processing the requests.
         std::vector<int>* returnList = new std::vector<int>();
 
-        std::vector<String>* elements;
+        std::vector<String>* elements = {};
         std::vector<String>* chapterAndVerse;
         std::vector<String>* firstandPossSecond;
         int returnNumber = 0;
 
         for (int i = 0; i < (*requests).size(); i++)
         {
+            String currentRequest = requests->at(i);
             //OK, let's start by splitting up this function into scopes and concerns:
 
-
-            //---CONCERN 1: Flushing the garbage out of a request and splitting it up.---
-           
-            //Error catch that happens if someone does something like put a space between separated references so I'm doing this:
-            while (requests->at(i).at(0) == ' ')
-            {
-                requests->at(i) = requests->at(i).substr(1);
-            }
-
-            //Stylistic choice; If you end a reference with a semicolon and put nothing after it, then an error pops up.
-            if (requests->at(i) == "")
-            {
+            if (PreprocessRequest(currentRequest, elements)) {
                 continue;
             }
 
-            //First, split the resulting string further by its spaces to get the book and chapter/verses. 
-            elements = Util::split(requests->at(i), ' ');
-
-            //END CONCERN
-         
+            bool multiWordBook = DiscernReferenceBook(&returnNumber, elements, requests->at(i));
             
-
-
-            bool multiWordBook = false;
-
-
-            //--CONCERN 2: DISCERNING THE BOOK
-            //Second, turn the first element of *that* resulting string into a number using BibleIndexes' GetBibleIndexFromArray.
-
-            returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book; //x1000000 because that's the scheme the JSON uses.
-
-            if ( BibleIndexes::IsOneChapterBook(returnNumber) && requests->at(i).find(":") == std::string::npos) //if it's a one-chapter book being referenced knowingly by the user (e.g: Philemon 24 instead of Philemon 1:24)
-            {
-                (*elements)[1] = "1:" + (*elements)[1]; //Simple solutions to simple problems:
+            if (IsCompoundReference(elements, multiWordBook)) {
+                std::vector<int>* csv = SplitCommaSeparatedVerses(*elements, multiWordBook);
+                returnList->insert(returnList->end(), csv->begin(), csv->end());
+                delete csv;
+                continue;
             }
-
-            //Accomodations for multi-word books
-            if (returnNumber == 0)
-            {
-                returnNumber = 
-                    BibleIndexes::GetBibleIndexFromArray(elements->at(0) + " " + elements->at(1)) * BibleIndexes::Book;
-                multiWordBook = true; //flag the next subscript to shift down one element
-            }
-
-            //END CONCERN
-
-
-
-            //CONCERN 2.1 -- COMPOUND REFERENCE?
-            //Sub-concerns will be early-terminating concerns that terminate the loop iteration early and move next.
-            
-            //New clause; Sometimes you might want to reference a bunch of new verses within the same book, a la, for example,
-            //"Jonah 1:3-4,14,17,2:1". So, here's what we're gonna do:
-            if (elements->size() > (multiWordBook ? 2 : 1))
-            {
-                if (elements->at(multiWordBook ? 2 : 1).find(",") != String::npos)
-                {
-                    std::vector<int>* csv = SplitCommaSeparatedVerses(*elements, multiWordBook);
-                    returnList->insert(returnList->end(), csv->begin(), csv->end());
-                    delete csv;
-                    continue;
-                }
-            }
-
-            //END CONCERN
 
             //CONCERN 2.2 -- WHOLE-BOOK-REFERENCES
             //If we are simply referencing an entire book
+            //TODO: Triage this more effectively. 
             if (((elements->size() == 1) || (elements->size() == 2 && multiWordBook)) && requests->at(i).find("-") == String::npos)
             {
                 //gotta check for the special condition (explained later)
-                if (recursive)
-                {
+                if (recursive) {
                     returnList->push_back(returnNumber + BibleIndexes::Chapter + BibleIndexes::Verse);
-                    continue; //simply return a starting point (or an end point)
+                } else {
+                    int nextBook = BibleIndexes::IncreaseBibleReference(returnNumber, BibleIndexes::Book);
+                    std::vector<int>* gvbm = GetVersesBetweenMarkers(returnNumber, nextBook, BibleIndexes::Chapter, false);
+                    returnList->insert(returnList->end(), gvbm->begin(), gvbm->end());
+                    delete gvbm;
                 }
 
-                int nextBook = BibleIndexes::IncreaseBibleReference(returnNumber, BibleIndexes::Book);
-                std::vector<int>* gvbm = GetVersesBetweenMarkers(returnNumber, nextBook, BibleIndexes::Chapter, false);
-                for (int GVBMref : *gvbm)
-                {
-                    returnList->push_back(GVBMref);
-                }
-                delete gvbm;
                 continue;
             }
 
             //END CONCERN
 
-
-            //CONCERN 2.3 -- CROSS-BOOK REFERENCES
-            std::vector<String>* potentialCrossBookReference = Util::split((*requests)[i], '-');
-            if (potentialCrossBookReference->size() > 1)
-            {
-                if (BibleIndexes::GetBibleIndexFromArray((*potentialCrossBookReference)[0]) != 0 && BibleIndexes::GetBibleIndexFromArray((*potentialCrossBookReference)[1]) != 0)
-                {
-                    int startPos = GetReferencesFromString((*potentialCrossBookReference)[0], true)->at(0);
-                    int endPos = GetReferencesFromString((*potentialCrossBookReference)[1], true)->at(0);
-
-                    for(int GVBMref : *GetVersesBetweenMarkers(startPos, endPos, BibleIndexes::Chapter, true))
-                    {
-                        returnList->push_back(GVBMref);
-                    }
-                    returnList->push_back(endPos);
-                    continue;
-                }
+            if (ProcessCrossBookReferences(currentRequest, returnList)) {
+                continue;
             }
-
-            //END CONCERN
+            
 
             firstandPossSecond = Util::split(elements->at(multiWordBook ? 2 : 1), '-');
 
@@ -166,24 +194,9 @@ namespace KuwagataDLL {
 
             returnNumber += std::stoi(chapterAndVerse->at(0)) * 1000;
 
-            //CONCERN 2.4 -- WHOLE-CHAPTER REFERENCES
-
-            //If there's just a chapter and no verse:
-            if (chapterAndVerse->size() == 1)
-            {
-                int nextBook = BibleIndexes::IncreaseBibleReference(returnNumber, BibleIndexes::Chapter);
-                for (int a = returnNumber; a < nextBook; a++)
-                {
-                    if (verses.contains(std::to_string(a)))
-                    {
-                        returnList->push_back(a);
-                    }
-                }
+            if (ProcessWholeChapter(returnList,chapterAndVerse, returnNumber)) {
                 continue;
             }
-
-            //END CONCERN
-
 
             //CONCERNS 3 AND 4 -- HYPHENATED ELEMENTS
 
@@ -274,6 +287,7 @@ namespace KuwagataDLL {
 	{
 		return Version;
 	}
+
 	std::vector<int>* OSISReader::GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate)
 	{
 		std::vector<int>* ret = new std::vector<int>();
@@ -333,5 +347,6 @@ namespace KuwagataDLL {
 		}
 		return ret;
 	}
+
 }
 

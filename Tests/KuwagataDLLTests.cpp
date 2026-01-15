@@ -61,6 +61,17 @@ void TestSingleChapterBooks() {
 
 }
 
+void TestSingleChapter() {
+	LoadReference("Genesis 1");
+	TEST_ASSERT_EQUAL(ids->size(), 31);
+	TEST_ASSERT_EQUAL_STRING(refs->front().c_str(), "Genesis 1:1");
+	TEST_ASSERT_EQUAL_STRING(refs->back().c_str(), "Genesis 1:31");;
+}
+
+/*TODO tests to add :
+-single chapters
+-Whole books that are also single-chapters
+*/
 
 int main(void) {
 	UNITY_BEGIN();
@@ -69,6 +80,7 @@ int main(void) {
 	RUN_TEST(TestMultiReference);
 	RUN_TEST(TestCompoundReference);
 	RUN_TEST(TestSingleChapterBooks);
+	RUN_TEST(TestSingleChapter);
 	return UNITY_END();
 }
 
