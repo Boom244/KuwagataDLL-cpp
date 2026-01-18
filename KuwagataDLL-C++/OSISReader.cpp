@@ -64,6 +64,7 @@ namespace KuwagataDLL {
         *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book; 
 
         if (BibleIndexes::IsOneChapterBook(*returnNumber) && currentRequest.find(":") == std::string::npos) { 
+            (*elements)[1] = "1:" + (*elements)[1]; 
         }
 
         if (*returnNumber == 0) {
