@@ -1,3 +1,6 @@
+#ifndef KUWAGATA_DLL_MAIN
+#define KUWAGATA_DLL_MAIN
+
 #include"BibleIndexes.h"
 #include"OSISReader.h"
 
@@ -21,7 +24,8 @@ namespace KuwagataDLL {
 		static std::vector<String>* verses;
 		static std::vector<String>* plainVerseReferences;
 		static std::vector<int>* verseIds;
-		static int currentIndex;
 		static OSISReader* reader;
 	};
 }
+
+#endif;

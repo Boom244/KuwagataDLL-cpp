@@ -7,9 +7,11 @@ using Regex = std::regex;
 
 namespace KuwagataDLL {
 
+	//The BibleIndexes class, holding important secondary information required for DLL operation.
 	class BibleIndexes {
 
 		public:
+			//Selection options reflecting the JSON schema. 
 			enum SelectionOption {
 				Verse = 1,
 				Chapter = 1000,

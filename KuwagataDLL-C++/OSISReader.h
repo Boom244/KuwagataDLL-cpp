@@ -7,15 +7,11 @@
 #include<nlohmann/json.hpp>
 using JSON = nlohmann::json;
 
-//My 16-year-old self was *not* thinking properly
-//when I wrote this code back in C# back in 2021/22. 
-//First I need to triage the problem by adding a bunch
-//of helper functions for the different clauses, and then maybe
-//look at the logical trappings of the GetReferencesFromString function
-//and maybe reduce its size overall.
+
 
 namespace KuwagataDLL {
 
+	//The OSISReader class, designed to parse JSON files in Open Scripture Information Standard format.
 	class OSISReader {
 	public: 
 		OSISReader(String OSISpath);

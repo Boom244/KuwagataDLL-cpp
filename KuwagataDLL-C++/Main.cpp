@@ -4,20 +4,31 @@ namespace KuwagataDLL {
 	std::vector<String>* Main::verses;
 	std::vector<String>* Main::plainVerseReferences;
 	std::vector<int>* Main::verseIds;
-	int Main::currentIndex = 0;
 	OSISReader* Main::reader;
 
+	/*
+	Initializes the DLL.
+	@param OSISpath the path to the current verses.json that the
+	DLL should read.
+	*/
 	KUWAGATA_DLL void Main::Initialize(String OSISpath){
 		reader = new OSISReader(OSISpath);
 	}
+	/*
+	Changes the OSIS path.
+	@param newOSISPath the path to the new verses.json that the
+	DLL should read.
+	*/
 	KUWAGATA_DLL void Main::ChangeOSISPath(String newOSISPath){
 		reader->ChangeOSISPath(newOSISPath);
 	}
-	KUWAGATA_DLL void Main::StartNewRequest(String Verse){
-		//Reset the current index
-		currentIndex = 0;
 
-		//Give the user their verses.
+	/*
+	Starts a new verse request. 
+	@param Verse the reference to retrieve.
+	*/
+	KUWAGATA_DLL void Main::StartNewRequest(String Verse){
+
 		if (verseIds != nullptr) {
 			delete verseIds;
 			delete plainVerseReferences;
@@ -29,18 +40,34 @@ namespace KuwagataDLL {
 
 		plainVerseReferences = reader->BatchDecodeAllReferences(*verseIds);
 	}
+
+	/*
+	Returns the OSISReader.
+	*/
 	KUWAGATA_DLL OSISReader* Main::GetOSISReader()
 	{
 		return reader;
 	}
+
+	/*
+	Returns a pointer to the verses retrieved by this DLL.
+	*/
 	KUWAGATA_DLL std::vector<String>* Main::GetVerses()
 	{
 		return verses;
 	}
+
+	/*
+	Returns a pointer to the references retrieved by this DLL.
+	*/
 	KUWAGATA_DLL std::vector<String>* Main::GetReferences()
 	{
 		return plainVerseReferences;
 	}
+
+	/*
+	Returns a pointer to the verse IDs retrieved by this DLL.
+	*/
 	KUWAGATA_DLL std::vector<int>* Main::GetVerseIDs()
 	{
 		return verseIds;
