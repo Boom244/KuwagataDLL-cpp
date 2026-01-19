@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="KuwagataDLL-C++/KuwagataDLL-C++.vcxproj" Id="8bf8db1e-67cb-485b-a0eb-fd0100ef64d8" />
+  <Project Path="Tests/Tests.vcxproj" Id="8f0ff842-6aa0-4e71-bc5c-8ce6b682ccdb" />
+</Solution>
