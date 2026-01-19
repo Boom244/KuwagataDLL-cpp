@@ -157,7 +157,7 @@ namespace KuwagataDLL {
     {
         for (int i = 0; i < BOOKS_BIBLE; i++)
         {
-            if (std::regex_match(element, bibleRegexes[i]))
+            if (std::regex_search(element, bibleRegexes[i]))
             {
                 return i + 1;
             }

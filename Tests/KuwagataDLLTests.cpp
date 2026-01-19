@@ -75,6 +75,13 @@ void TestMultiWordBooks() {
 	TEST_ASSERT_EQUAL_STRING(refs->back().c_str(), "1 Corinthians 1:31");
 }
 
+void TestCrossBookReferences() {
+	LoadReference("Genesis 1:1-Exodus 2:1");
+	TEST_ASSERT_EQUAL(ids->size(), 1556);
+	TEST_ASSERT_EQUAL_STRING(refs->front().c_str(), "Genesis 1:1");
+	TEST_ASSERT_EQUAL_STRING(refs->back().c_str(), "Exodus 2:1");
+}
+
 /*TODO tests to add :
 -single chapters
 -Whole books that are also single-chapters
@@ -89,6 +96,7 @@ int main(void) {
 	RUN_TEST(TestSingleChapterBooks);
 	RUN_TEST(TestSingleChapter);
 	RUN_TEST(TestMultiWordBooks);
+	RUN_TEST(TestCrossBookReferences);
 	return UNITY_END();
 }
 
