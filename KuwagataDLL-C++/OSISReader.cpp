@@ -30,6 +30,9 @@ namespace KuwagataDLL {
 		this->verses = JSON::parse(std::ifstream(newOSISPath));
 
 	}
+
+
+
 	std::vector<int>* OSISReader::GetReferencesFromString(String request, bool recursive)
 	{
         //First, split the string by semicolons into individual requests;
@@ -45,8 +48,11 @@ namespace KuwagataDLL {
 
         for (int i = 0; i < (*requests).size(); i++)
         {
+            //OK, let's start by splitting up this function into scopes and concerns:
 
-            bool multiWordBook = false;
+
+            //---CONCERN 1: Flushing the garbage out of a request and splitting it up.---
+           
             //Error catch that happens if someone does something like put a space between separated references so I'm doing this:
             while (requests->at(i).at(0) == ' ')
             {
@@ -62,8 +68,15 @@ namespace KuwagataDLL {
             //First, split the resulting string further by its spaces to get the book and chapter/verses. 
             elements = Util::split(requests->at(i), ' ');
 
+            //END CONCERN
+         
+            
 
 
+            bool multiWordBook = false;
+
+
+            //--CONCERN 2: DISCERNING THE BOOK
             //Second, turn the first element of *that* resulting string into a number using BibleIndexes' GetBibleIndexFromArray.
 
             returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book; //x1000000 because that's the scheme the JSON uses.
@@ -76,10 +89,18 @@ namespace KuwagataDLL {
             //Accomodations for multi-word books
             if (returnNumber == 0)
             {
-                returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0) + " " + elements->at(1)) * BibleIndexes::Book;
+                returnNumber = 
+                    BibleIndexes::GetBibleIndexFromArray(elements->at(0) + " " + elements->at(1)) * BibleIndexes::Book;
                 multiWordBook = true; //flag the next subscript to shift down one element
             }
 
+            //END CONCERN
+
+
+
+            //CONCERN 2.1 -- COMPOUND REFERENCE?
+            //Sub-concerns will be early-terminating concerns that terminate the loop iteration early and move next.
+            
             //New clause; Sometimes you might want to reference a bunch of new verses within the same book, a la, for example,
             //"Jonah 1:3-4,14,17,2:1". So, here's what we're gonna do:
             if (elements->size() > (multiWordBook ? 2 : 1))
@@ -93,6 +114,9 @@ namespace KuwagataDLL {
                 }
             }
 
+            //END CONCERN
+
+            //CONCERN 2.2 -- WHOLE-BOOK-REFERENCES
             //If we are simply referencing an entire book
             if (((elements->size() == 1) || (elements->size() == 2 && multiWordBook)) && requests->at(i).find("-") == String::npos)
             {
@@ -113,6 +137,10 @@ namespace KuwagataDLL {
                 continue;
             }
 
+            //END CONCERN
+
+
+            //CONCERN 2.3 -- CROSS-BOOK REFERENCES
             std::vector<String>* potentialCrossBookReference = Util::split((*requests)[i], '-');
             if (potentialCrossBookReference->size() > 1)
             {
@@ -130,11 +158,15 @@ namespace KuwagataDLL {
                 }
             }
 
+            //END CONCERN
+
             firstandPossSecond = Util::split(elements->at(multiWordBook ? 2 : 1), '-');
 
             chapterAndVerse = Util::split(firstandPossSecond->at(0), ':');
 
             returnNumber += std::stoi(chapterAndVerse->at(0)) * 1000;
+
+            //CONCERN 2.4 -- WHOLE-CHAPTER REFERENCES
 
             //If there's just a chapter and no verse:
             if (chapterAndVerse->size() == 1)
@@ -150,6 +182,10 @@ namespace KuwagataDLL {
                 continue;
             }
 
+            //END CONCERN
+
+
+            //CONCERNS 3 AND 4 -- HYPHENATED ELEMENTS
 
             if (firstandPossSecond->size() >= 2) //If a second element exists, branch and get all the verses between the first and second number. 
             {
@@ -165,8 +201,15 @@ namespace KuwagataDLL {
                 {
                     std::vector<String>* firstChapterAndVerse = Util::split(firstandPossSecond->at(0), ':');
 
-                    String startPosition = multiWordBook ? std::format("{} {} {}", elements->at(0), elements->at(1), firstandPossSecond->at(0)) : std::format("{} {}", elements->at(0), firstandPossSecond->at(0));
-                    String endPosition = multiWordBook ? std::format("{} {} {}:{}", elements->at(0), elements->at(1), firstChapterAndVerse->at(0), firstandPossSecond->at(1)) : std::format("{} {}:{}", elements->at(0), firstChapterAndVerse->at(0), firstandPossSecond->at(1));
+                    String startPosition = multiWordBook ? 
+                        std::format("{} {} {}", elements->at(0), elements->at(1), firstandPossSecond->at(0)) :
+                        std::format("{} {}", elements->at(0), firstandPossSecond->at(0));
+
+                    String endPosition = multiWordBook ?
+                        std::format("{} {} {}:{}", elements->at(0), elements->at(1), 
+                            firstChapterAndVerse->at(0), firstandPossSecond->at(1)) : 
+                        std::format("{} {}:{}", elements->at(0), firstChapterAndVerse->at(0),
+                            firstandPossSecond->at(1));
 
                     startPosition = std::format("{};{}", startPosition, endPosition);
 
@@ -185,6 +228,8 @@ namespace KuwagataDLL {
                 returnList->push_back(returnNumber + std::stoi(chapterAndVerse->at(1)));
                 delete chapterAndVerse;
             }
+
+        //END CONCERN
         }
         
         
