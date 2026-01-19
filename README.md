@@ -1,4 +1,4 @@
-# KuwagataDLL-C++
+![KuwagataDLL-C++](https://github.com/Boom244/KuwagataDLL-cpp/blob/master/Kuwagata-Logo.png "KuwagataDLL-C++")
 
 ## What is this?
 This is a rewrite the backend of a C# project I published on GitHub in 2022, *Kuwagata*, in C++. I've also given some of the code a facelift, decreased the sizes of some functions, and rewritten some out-right. I plan to continue to improve this project over time, in order to make Kuwagata (and any other projects dependent on this DLL) faster and more memory-efficient. 
