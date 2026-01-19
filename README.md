@@ -8,3 +8,9 @@ I plan to port this functionality to OBS Studio out-right as a plugin later on. 
 
 ## What if I want to contribute?
 Contributions are welcome! I plan to include a style doc for them later on, but as of now, I welcome any and all code help, because I, admittedly, know a lot less about C++ than I should.
+
+
+# Relevant Credits
+This library was made possible with the use of th4ctesting library [Unity by ThrowTheSwitch](https://github.com/ThrowTheSwitch/Unity), whose headers and implementation files can be found in [Tests](https://github.com/Boom244/KuwagataDLL-cpp/blob/master/Tests).
+
+This library also makes use of the JSON schema and regular expressions from [Nathan Patton](https://github.com/avendesora)'s project, [PythonBible](https://github.com/avendesora/pythonbible). 
