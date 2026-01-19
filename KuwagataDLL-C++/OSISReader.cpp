@@ -68,22 +68,24 @@ namespace KuwagataDLL {
         //Accomodations for multi-word books
         if (*returnNumber == 0)
         {
-            *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0) + " " + elements->at(1)) * BibleIndexes::Book;
+            elements->insert(elements->begin(), elements->at(0) + " " + elements->at(1));
+            elements->erase(elements->begin() + 1, elements->begin() + 3);
+            *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book;
             return true; //flag the next subscript to shift down one element
         }
         return false;
         //END CONCERN
     }
 
-     bool IsCompoundReference(std::vector<String>* elements, bool multiWordBook) {
+     bool IsCompoundReference(std::vector<String>* elements) {
         //CONCERN 2.1 -- COMPOUND REFERENCE?
             //Sub-concerns will be early-terminating concerns that terminate the loop iteration early and move next.
 
             //New clause; Sometimes you might want to reference a bunch of new verses within the same book, a la, for example,
             //"Jonah 1:3-4,14,17,2:1". So, here's what we're gonna do:
-        if (elements->size() > (multiWordBook ? 2 : 1))
+        if (elements->size() > 1)
         {
-            if (elements->at(multiWordBook ? 2 : 1).find(",") != String::npos)
+            if (elements->at(1).find(",") != String::npos)
             {
                 return true;
             }
@@ -92,7 +94,7 @@ namespace KuwagataDLL {
         //END CONCERN
     }
 
-     bool OSISReader::ProcessCrossBookReferences(String currentRequest, std::vector<int>* returnList) {
+     bool OSISReader::ProcessedCrossBookReferences(String currentRequest, std::vector<int>* returnList) {
          //CONCERN 2.3 -- CROSS-BOOK REFERENCES
          std::vector<String>* potentialCrossBookReference = Util::split(currentRequest, '-');
          if (potentialCrossBookReference->size() > 1)
@@ -117,7 +119,7 @@ namespace KuwagataDLL {
          //END CONCERN
     }
 
-     bool OSISReader::ProcessWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber) {
+     bool OSISReader::ProcessedWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber) {
          //CONCERN 2.4 -- WHOLE-CHAPTER REFERENCES
 
             //If there's just a chapter and no verse:
@@ -154,10 +156,11 @@ namespace KuwagataDLL {
                 continue;
             }
 
-            bool multiWordBook = DiscernReferenceBook(&returnNumber, elements, requests->at(i));
+            DiscernReferenceBook(&returnNumber, elements, requests->at(i));
+
             
-            if (IsCompoundReference(elements, multiWordBook)) {
-                std::vector<int>* csv = SplitCommaSeparatedVerses(*elements, multiWordBook);
+            if (IsCompoundReference(elements)) {
+                std::vector<int>* csv = SplitCommaSeparatedVerses(*elements);
                 returnList->insert(returnList->end(), csv->begin(), csv->end());
                 delete csv;
                 continue;
@@ -165,8 +168,8 @@ namespace KuwagataDLL {
 
             //CONCERN 2.2 -- WHOLE-BOOK-REFERENCES
             //If we are simply referencing an entire book
-            //TODO: Triage this more effectively. 
-            if (((elements->size() == 1) || (elements->size() == 2 && multiWordBook)) && requests->at(i).find("-") == String::npos)
+            //TODO: Triage this concern more effectively. 
+            if ((elements->size() == 1) && requests->at(i).find("-") == String::npos)
             {
                 //gotta check for the special condition (explained later)
                 if (recursive) {
@@ -183,18 +186,18 @@ namespace KuwagataDLL {
 
             //END CONCERN
 
-            if (ProcessCrossBookReferences(currentRequest, returnList)) {
+            if (ProcessedCrossBookReferences(currentRequest, returnList)) {
                 continue;
             }
             
 
-            firstandPossSecond = Util::split(elements->at(multiWordBook ? 2 : 1), '-');
+            firstandPossSecond = Util::split(elements->at(1), '-');
 
             chapterAndVerse = Util::split(firstandPossSecond->at(0), ':');
 
             returnNumber += std::stoi(chapterAndVerse->at(0)) * 1000;
 
-            if (ProcessWholeChapter(returnList,chapterAndVerse, returnNumber)) {
+            if (ProcessedWholeChapter(returnList,chapterAndVerse, returnNumber)) {
                 continue;
             }
 
@@ -207,30 +210,28 @@ namespace KuwagataDLL {
 
                 if (firstandPossSecond->at(1).find(':') != String::npos) // If the split string contains a reference to another verse, in another chapter:
                 {
-                    std::vector<int>* csv = GetVersesBetweenChapters(multiWordBook, *elements, *firstandPossSecond);
+                    std::vector<int>* csv = GetVersesBetweenChapters(*elements, *firstandPossSecond);
                     returnList->insert(returnList->end(), csv->begin(), csv->end());
                 }
                 else
                 {
                     std::vector<String>* firstChapterAndVerse = Util::split(firstandPossSecond->at(0), ':');
 
-                    String startPosition = multiWordBook ? 
-                        std::format("{} {} {}", elements->at(0), elements->at(1), firstandPossSecond->at(0)) :
-                        std::format("{} {}", elements->at(0), firstandPossSecond->at(0));
+                    String startPosition = std::format("{} {}", elements->at(0), firstandPossSecond->at(0));
 
-                    String endPosition = multiWordBook ?
-                        std::format("{} {} {}:{}", elements->at(0), elements->at(1), 
-                            firstChapterAndVerse->at(0), firstandPossSecond->at(1)) : 
-                        std::format("{} {}:{}", elements->at(0), firstChapterAndVerse->at(0),
+                    String endPosition =  std::format("{} {}:{}", elements->at(0), firstChapterAndVerse->at(0),
                             firstandPossSecond->at(1));
 
                     startPosition = std::format("{};{}", startPosition, endPosition);
 
-                    std::vector<int>* tempHolder = GetReferencesFromString(startPosition, false);
-                    for (int k = tempHolder->at(0); k < tempHolder->at(1) + 1; k++) //Loop through the resulting numbers
+                    std::vector<int>* numRefs = GetReferencesFromString(startPosition, false);
+                    for (int k = numRefs->at(0); k < numRefs->at(1) + 1; k++) //Loop through the resulting numbers
                     {
                         returnList->push_back(k);
                     }
+
+                    delete numRefs;
+                    delete firstChapterAndVerse;
                 }
 
                 delete firstandPossSecond;
@@ -244,10 +245,6 @@ namespace KuwagataDLL {
 
         //END CONCERN
         }
-        
-        
-        
-
         return returnList;
         //So hopefully, as a result of this function, an input of {"Genesis 1:1", "Genesis 1:2"} should return {1001001, 1001002}.
 	}
@@ -316,18 +313,18 @@ namespace KuwagataDLL {
 		}
 		return ret;
 	}
-	std::vector<int>* OSISReader::GetVersesBetweenChapters(bool multiWordBook, std::vector<String> elements, std::vector<String> tokens)
+	std::vector<int>* OSISReader::GetVersesBetweenChapters(std::vector<String> elements, std::vector<String> tokens)
 	{
 
-		String bookTitle = multiWordBook ? std::format("{} {}", elements[0], elements[1]) : elements[0];
+		String bookTitle =  elements[0];
 		int startRef =  GetReferencesFromString(std::format("{} {}", bookTitle, tokens[0]), false)->at(0);
 		int endRef = GetReferencesFromString(std::format("{} {}", bookTitle, tokens[1]), false)->at(0);
 		return GetVersesBetweenMarkers(startRef, endRef, BibleIndexes::Chapter, false);
 	}
-	std::vector<int>* OSISReader::SplitCommaSeparatedVerses(std::vector<String> elements, bool multiWordBook)
+	std::vector<int>* OSISReader::SplitCommaSeparatedVerses(std::vector<String> elements)
 	{
-		std::vector<String>* subElements = Util::split(elements[multiWordBook ? 2 : 1], ',');
-		String book = elements[0] + (multiWordBook ? elements[1] : "");
+		std::vector<String>* subElements = Util::split(elements[1], ',');
+        String book = elements[0];
 		String chapter = Util::split(subElements->at(0), ':')->at(0);
 		std::vector<int>* ret = new std::vector<int>();
 		for (int i = 0; i < subElements->size(); i++) {
