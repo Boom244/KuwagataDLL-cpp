@@ -18,7 +18,8 @@ namespace KuwagataDLL {
 		void ChangeOSISPath(String newOSISPath);
 		std::vector<int>* GetReferencesFromString(String request, bool recursive);
 		std::vector<String>* GetVersesFromReferences(std::vector<int> verseIds);
-		std::vector<String>* BatchDecodeAllReferences(std::vector<int> references);
+		static std::vector<String>* BatchDecodeAllReferences(std::vector<int> references);
+		static String DecodeReference(int reference);
 		String getOSISPath();
 		String getVersion();
 	private:

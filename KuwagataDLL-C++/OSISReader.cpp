@@ -268,15 +268,27 @@ namespace KuwagataDLL {
 		//This is ugly.
 		//Come back and work your magic on it once we're done here.
 		for (int i = 0; i < references.size(); i++) {
-			int ref = references.at(i);
-			int bookIdent = floor(ref / books);
-			String Book = BibleIndexes::GetFromBiblePlainArray(bookIdent);
-			String Chapter = std::to_string((int)floor((ref - (bookIdent * books)) / 1000));
-			String  VerseIdentifier = std::to_string((ref - ((bookIdent * books) + (std::stoi(Chapter) * 1000))));
-			ret_refs->push_back(Book + " " + Chapter + ":" + VerseIdentifier);
+			ret_refs->push_back(DecodeReference(references.at(i)));
 		}
 		return ret_refs;
 	}
+
+    /*
+        Decodes a singular numerical reference into a human-readable reference.
+        @param reference The numerical reference to decode.
+        @returns a String representing the corresponding reference.
+    */
+    String OSISReader::DecodeReference(int reference)
+    {
+        int books = BibleIndexes::Book;
+        int chapters = BibleIndexes::Chapter;
+
+        int bookIdent = floor(reference / books);
+        String Book = BibleIndexes::GetFromBiblePlainArray(bookIdent);
+        String Chapter = std::to_string((int)floor((reference - (bookIdent * books)) / 1000));
+        String  VerseIdentifier = std::to_string((reference - ((bookIdent * books) + (std::stoi(Chapter) * 1000))));
+        return (Book + " " + Chapter + ":" + VerseIdentifier);
+    }
 	
     /*
     Gets the current path of this OSISReader.
