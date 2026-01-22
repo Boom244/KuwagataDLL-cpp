@@ -1,18 +1,32 @@
 #include "UserException.h"
 
 namespace KuwagataDLL {
+
+	/*
+	Constructor for a UserException pertaining to a certain reference.
+	@param type the type of exception.
+	@param exceptionReference The numerical reference associated with this exception.
+	*/
 	UserException::UserException(ExceptionType type, int exceptionReference){
 		this->type = type;
 		this->offendingUserInput = "";
 		this->exceptionReference = exceptionReference;
 	}
 
+	/*
+	Constructor for a UserException pertaining to user input..
+	@param type the type of exception.
+	@param offendingUserInput the user input that raised this exception.
+	*/
 	UserException::UserException(ExceptionType type, String offendingUserInput){
 		this->type = type;
 		this->offendingUserInput = offendingUserInput;
 		this->exceptionReference = 0;
 	}
 
+	/*
+	Outputs a string based on the internal data in this exception object.
+	*/
 	std::string UserException::AsString()
 	{
 		switch (type) {
