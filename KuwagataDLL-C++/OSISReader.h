@@ -5,6 +5,7 @@
 #include<vector>
 #include<math.h>
 #include<nlohmann/json.hpp>
+#include "UserException.h"
 using JSON = nlohmann::json;
 
 
@@ -20,12 +21,16 @@ namespace KuwagataDLL {
 		std::vector<String>* GetVersesFromReferences(std::vector<int> verseIds);
 		static std::vector<String>* BatchDecodeAllReferences(std::vector<int> references);
 		static String DecodeReference(int reference);
+		std::vector<UserException> getRaisedExceptions();
 		String getOSISPath();
 		String getVersion();
 	private:
 		String OSISPath;
 		String Version;
 		JSON verses;
+		std::vector<UserException>* raisedExceptions;
+		void AddNewException(ExceptionType type, String offendingInput);
+		void AddNewException(ExceptionType type, int offendingReference);
 		std::vector<int>* GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate);
 		std::vector<int>* GetVersesBetweenChapters(std::vector<String> elements, std::vector<String> tokens);
 		std::vector<int>* SplitCommaSeparatedVerses(std::vector<String> elements);

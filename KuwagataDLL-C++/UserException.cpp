@@ -47,6 +47,7 @@ namespace KuwagataDLL {
 			}
 			break;
 		default:
+			return NULL;
 			break;
 		}
 	}

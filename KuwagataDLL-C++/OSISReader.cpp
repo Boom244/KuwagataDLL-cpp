@@ -12,6 +12,7 @@ namespace KuwagataDLL {
 	{
 		this->OSISPath = OSISpath;
 		//this->Version = whatever...
+        raisedExceptions = new std::vector<UserException>();
         std::ifstream file(OSISpath);
 
         try {
@@ -168,6 +169,7 @@ namespace KuwagataDLL {
     * @returns A pointer to a Vector containing all referenced verses in String request.
     */
 	std::vector<int>* OSISReader::GetReferencesFromString(String request, bool recursive) {
+        raisedExceptions->clear();
         std::vector<String>* requests = Util::split(request,';');
 
         std::vector<int>* returnList = new std::vector<int>();
@@ -289,6 +291,14 @@ namespace KuwagataDLL {
         String  VerseIdentifier = std::to_string((reference - ((bookIdent * books) + (std::stoi(Chapter) * 1000))));
         return (Book + " " + Chapter + ":" + VerseIdentifier);
     }
+
+    /*
+    Retuns a list of raised exceptions by the previous StartNewRequest operation.
+    */
+    std::vector<UserException> OSISReader::getRaisedExceptions()
+    {
+        return *raisedExceptions;
+    }
 	
     /*
     Gets the current path of this OSISReader.
@@ -305,6 +315,24 @@ namespace KuwagataDLL {
 	}
 
     /*
+    Adds a new UserException to the raisedExceptions list.
+    @param type the Exception type.
+    @param offendingInput the offending input.
+    */
+    void OSISReader::AddNewException(ExceptionType type, String offendingInput) {
+        raisedExceptions->push_back(UserException(type, offendingInput));
+    }
+
+    /*
+    Adds a new UserException to the raisedExceptions list.
+    @param type the Exception type.
+    @param offendingReference the offending numerical reference. 
+    */
+    void OSISReader::AddNewException(ExceptionType type, int offendingReference) {
+        raisedExceptions->push_back(UserException(type, offendingReference));
+    }
+
+    /*
     Retrieves all valid OSIS IDs between two markers.
     @param startMarker The beginning marker.
     @param endMarker The ending marker.
@@ -312,7 +340,7 @@ namespace KuwagataDLL {
     @param escalate a flag for whether or not to do said escalation.
     @return A Vector of all verse references between the two markers.
     */
-	std::vector<int>* OSISReader::GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate) {
+    std::vector<int>* OSISReader::GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate) {
 		std::vector<int>* ret = new std::vector<int>();
 		if (startMarker > endMarker) {
 			int temp;
