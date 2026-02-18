@@ -1,11 +1,12 @@
 #ifndef OSIS_READER
 #define OSIS_READER
 
-#include "BibleIndexes.h"
+
 #include<vector>
 #include<math.h>
 #include<nlohmann/json.hpp>
 #include "UserException.h"
+#include "BibleIndexes.h"
 using JSON = nlohmann::json;
 
 
@@ -29,11 +30,12 @@ namespace KuwagataDLL {
 		String Version;
 		JSON verses;
 		std::vector<UserException>* raisedExceptions;
-		void AddNewException(ExceptionType type, String offendingInput);
-		void AddNewException(ExceptionType type, int offendingReference);
+		void AddInputException(ExceptionType type, String offendingInput);
+		void AddReferenceException(ExceptionType type, int offendingReference);
 		std::vector<int>* GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate);
 		std::vector<int>* GetVersesBetweenChapters(std::vector<String> elements, std::vector<String> tokens);
 		std::vector<int>* SplitCommaSeparatedVerses(std::vector<String> elements);
+		bool DiscernReferenceBook(int* returnNumber, std::vector<String>* elements, String currentRequest);
 		bool ProcessedCrossBookReferences(String currentRequest, std::vector<int>* returnList);
 		bool ProcessedWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber);
 		void HandleHyphenatedReference(std::vector<String>* firstandPossSecond, String firstElement, std::vector<int>* returnList);

@@ -17,6 +17,7 @@ namespace KuwagataDLL {
 		KUWAGATA_DLL static void ChangeOSISPath(String newOSISPath);
 		KUWAGATA_DLL static void StartNewRequest(String Verse);
 		KUWAGATA_DLL static OSISReader* GetOSISReader();
+		KUWAGATA_DLL static std::vector<UserException> GetRaisedExceptions();
 		KUWAGATA_DLL static std::vector<String>* GetVerses();
 		KUWAGATA_DLL static std::vector<String>* GetReferences();
 		KUWAGATA_DLL static std::vector<int>* GetVerseIDs();

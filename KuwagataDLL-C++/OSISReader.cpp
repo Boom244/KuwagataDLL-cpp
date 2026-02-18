@@ -60,7 +60,7 @@ namespace KuwagataDLL {
     @param currentRequest the entire reference.
     @returns A boolean determining whether GetReferencesFromString should terminate this loop iteration early.
     */
-    bool DiscernReferenceBook(int* returnNumber, std::vector<String>* elements, String currentRequest) {
+    bool OSISReader::DiscernReferenceBook(int* returnNumber, std::vector<String>* elements, String currentRequest) {
         
         *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book; 
 
@@ -72,7 +72,10 @@ namespace KuwagataDLL {
             elements->insert(elements->begin(), elements->at(0) + " " + elements->at(1));
             elements->erase(elements->begin() + 1, elements->begin() + 3);
             *returnNumber = BibleIndexes::GetBibleIndexFromArray(elements->at(0)) * BibleIndexes::Book;
-            return true; 
+            if (*returnNumber == 0) { 
+                AddInputException(UNKNOWN_BOOK, elements->at(0));
+                return true;
+            }  
         }
         return false;
     }
@@ -121,13 +124,17 @@ namespace KuwagataDLL {
      @param returnList A pointer to the return list being output by GetReferencesFromString.
      @param chapterAndVerse A vector containing what could(?) be a chapter OR a chapter and verse.
      @param returnNumber the current state of GetReferencesFromString's returnNumber.
-     @return A boolean reflecting whether the reference in question is Cross-Book (also, a continue call in disguise!)
+     @return A boolean reflecting whether the reference in question is a chapter. (also, a continue call in disguise!)
      */
      bool OSISReader::ProcessedWholeChapter(std::vector<int>* returnList, std::vector<String>* chapterAndVerse, int returnNumber) {
 
          if (chapterAndVerse->size() == 1) {
              int nextChapter = BibleIndexes::IncreaseBibleReference(returnNumber, BibleIndexes::Chapter);
              std::vector<int>* chapter = GetVersesBetweenMarkers(returnNumber + 1, nextChapter, BibleIndexes::Verse, false);
+             if (chapter == nullptr) {
+                 AddReferenceException(CHAPTER_OUT_OF_RANGE, returnNumber);
+                 return true;
+             }
              returnList->insert(returnList->end(), chapter->begin(), chapter->end());
              delete chapter;
              return true;
@@ -151,7 +158,7 @@ namespace KuwagataDLL {
 
          startPosition = std::format("{};{}", startPosition, endPosition);
 
-         std::vector<int>* numRefs = GetReferencesFromString(startPosition, false);
+         std::vector<int>* numRefs = GetReferencesFromString(startPosition, true);
          std::vector<int>* refList = GetVersesBetweenMarkers(numRefs->at(0), numRefs->at(1) + 1,
              BibleIndexes::Chapter, false);
 
@@ -165,11 +172,13 @@ namespace KuwagataDLL {
     /*
     * Formats references from a string into numerical OSIS-style references.
     * @param request The string with references to be parsed.
-    * @param recursive Flag indicating a special recursive call.
+    * @param recursive Flag indicating a recursive call.
     * @returns A pointer to a Vector containing all referenced verses in String request.
     */
 	std::vector<int>* OSISReader::GetReferencesFromString(String request, bool recursive) {
-        raisedExceptions->clear();
+        if (!recursive) {
+            raisedExceptions->clear();
+        }
         std::vector<String>* requests = Util::split(request,';');
 
         std::vector<int>* returnList = new std::vector<int>();
@@ -186,7 +195,7 @@ namespace KuwagataDLL {
                 continue;
             }
 
-            DiscernReferenceBook(&returnNumber, elements, requests->at(i));
+            if (DiscernReferenceBook(&returnNumber, elements, requests->at(i))) { continue; }
             
             if (IsCompoundReference(elements)) {
                 std::vector<int>* csv = SplitCommaSeparatedVerses(*elements);
@@ -236,7 +245,12 @@ namespace KuwagataDLL {
                 delete firstandPossSecond;
                 delete elements;
             } else {
-                returnList->push_back(returnNumber + std::stoi(chapterAndVerse->at(1)));
+                returnNumber += std::stoi(chapterAndVerse->at(1));
+                if (verses.contains(std::to_string(returnNumber))) {
+                    returnList->push_back(returnNumber);
+                } else {
+                    AddReferenceException(VERSE_OUT_OF_RANGE, returnNumber);
+                }
                 delete chapterAndVerse;
             }
         }
@@ -267,8 +281,7 @@ namespace KuwagataDLL {
 
 		std::vector<String>* ret_refs = new std::vector<String>();
 
-		//This is ugly.
-		//Come back and work your magic on it once we're done here.
+		
 		for (int i = 0; i < references.size(); i++) {
 			ret_refs->push_back(DecodeReference(references.at(i)));
 		}
@@ -284,12 +297,13 @@ namespace KuwagataDLL {
     {
         int books = BibleIndexes::Book;
         int chapters = BibleIndexes::Chapter;
-
+        //This is ugly.
+        //Come back and work your magic on it once we're done here.
         int bookIdent = floor(reference / books);
         String Book = BibleIndexes::GetFromBiblePlainArray(bookIdent);
         String Chapter = std::to_string((int)floor((reference - (bookIdent * books)) / 1000));
         String  VerseIdentifier = std::to_string((reference - ((bookIdent * books) + (std::stoi(Chapter) * 1000))));
-        return (Book + " " + Chapter + ":" + VerseIdentifier);
+        return (Book + " " + Chapter + (VerseIdentifier == "0" ?  "" : ":" + VerseIdentifier));
     }
 
     /*
@@ -319,7 +333,7 @@ namespace KuwagataDLL {
     @param type the Exception type.
     @param offendingInput the offending input.
     */
-    void OSISReader::AddNewException(ExceptionType type, String offendingInput) {
+    void OSISReader::AddInputException(ExceptionType type, String offendingInput) {
         raisedExceptions->push_back(UserException(type, offendingInput));
     }
 
@@ -328,7 +342,7 @@ namespace KuwagataDLL {
     @param type the Exception type.
     @param offendingReference the offending numerical reference. 
     */
-    void OSISReader::AddNewException(ExceptionType type, int offendingReference) {
+    void OSISReader::AddReferenceException(ExceptionType type, int offendingReference) {
         raisedExceptions->push_back(UserException(type, offendingReference));
     }
 
@@ -338,7 +352,7 @@ namespace KuwagataDLL {
     @param endMarker The ending marker.
     @param so The initial BibleIndexes::SelectionOption by which to escalate the reference if it's not in the document.
     @param escalate a flag for whether or not to do said escalation.
-    @return A Vector of all verse references between the two markers.
+    @return A pointer to a Vector of all verse references between the two markers. NULL if the reference is nonsensical.
     */
     std::vector<int>* OSISReader::GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate) {
 		std::vector<int>* ret = new std::vector<int>();
@@ -348,6 +362,11 @@ namespace KuwagataDLL {
 			startMarker = endMarker;
 			endMarker = temp;
 		}
+
+        if (!verses.contains(std::to_string(startMarker))) {
+            return nullptr; //Let's not waste our time iterating if the reference is garbage. 
+        }
+
 		for (int i = startMarker; i < endMarker; i++) {
 			if (verses.contains(std::to_string(i))) {
 				ret->push_back(i);

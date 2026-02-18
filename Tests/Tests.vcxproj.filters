@@ -21,6 +21,15 @@
     <ClInclude Include="unity_internals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ExceptionTests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VerseTests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="unity.c">

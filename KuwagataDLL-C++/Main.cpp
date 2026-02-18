@@ -14,6 +14,12 @@ namespace KuwagataDLL {
 	KUWAGATA_DLL void Main::Initialize(String OSISpath){
 		reader = new OSISReader(OSISpath);
 	}
+
+	KUWAGATA_DLL std::vector<UserException> Main::GetRaisedExceptions()
+	{
+		return reader->getRaisedExceptions();
+	}
+
 	/*
 	Changes the OSIS path.
 	@param newOSISPath the path to the new verses.json that the
