@@ -11,6 +11,6 @@ Contributions are welcome! I plan to include a style doc for them later on, but 
 
 
 # Relevant Credits
-This library was made possible with the use of the testing library [Unity by ThrowTheSwitch](https://github.com/ThrowTheSwitch/Unity), whose headers and implementation files can be found in [Tests](https://github.com/Boom244/KuwagataDLL-cpp/blob/master/Tests).
+This library was made possible with the use of the testing library [Unity by ThrowTheSwitch](https://github.com/ThrowTheSwitch/Unity), alongside [Niels Lohmann's JSON parser for C++.](https://github.com/nlohmann/json)
 
 This library also makes use of the JSON schema and regular expressions from [Nathan Patton](https://github.com/avendesora)'s project, [PythonBible](https://github.com/avendesora/pythonbible). 
