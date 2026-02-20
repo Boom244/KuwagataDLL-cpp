@@ -7,11 +7,22 @@
 
 using namespace KuwagataDLL;
 
+void TestMemLeaks() {
+	LoadReference("Genesis 1");
+	LoadReference("Genesis 1");
+	LoadReference("Genesis 1");
+	LoadReference("Genesis 1");
+	LoadReference("Genesis 1");
+
+}
+
 int main(void) {
 	UNITY_BEGIN();
 	Main::Initialize("verses.json");
 	RunVerseTests();
 	RunExceptionTests();
+	TestMemLeaks();
+	Main::Release();
 	return UNITY_END();
 }
 

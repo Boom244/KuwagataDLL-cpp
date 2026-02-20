@@ -21,9 +21,15 @@ namespace KuwagataDLL {
         catch (const JSON::parse_error& ex) {
             std::cout << "Parse error at byte " << ex.byte << ": " << ex.what() << std::endl;
         }
-		
+        file.close();
 
 	}
+    OSISReader::~OSISReader()
+    {
+        delete raisedExceptions;
+        //delete &this->verses;
+    }
+
 	void OSISReader::ChangeOSISPath(String newOSISPath)
 	{
 		this->OSISPath = newOSISPath;
@@ -106,16 +112,20 @@ namespace KuwagataDLL {
          if (potentialCrossBookReference->size() > 1) {
              if (BibleIndexes::GetBibleIndexFromArray((*potentialCrossBookReference)[0]) != 0 
                  && BibleIndexes::GetBibleIndexFromArray((*potentialCrossBookReference)[1]) != 0) {
-                    int startPos = GetReferencesFromString((*potentialCrossBookReference)[0], true)->at(0);
-                    int endPos = GetReferencesFromString((*potentialCrossBookReference)[1], true)->at(0);
+                    std::vector<int>* sPosContainer = GetReferencesFromString((*potentialCrossBookReference)[0], true);
+                    std::vector<int>* ePosContainer = GetReferencesFromString((*potentialCrossBookReference)[1], true);
+                    int startPos = sPosContainer->at(0);
+                    int endPos = ePosContainer->at(0);
                     std::vector<int>* allMarkers = GetVersesBetweenMarkers(startPos, endPos+1, BibleIndexes::Chapter, true);
                     returnList->insert(returnList->end(), allMarkers->begin(), allMarkers->end());
                     delete potentialCrossBookReference;
                     delete allMarkers;
-
+                    delete sPosContainer;
+                    delete ePosContainer;
                     return true; 
              }
          }
+         delete potentialCrossBookReference;
          return false;
     }
 
@@ -183,7 +193,7 @@ namespace KuwagataDLL {
 
         std::vector<int>* returnList = new std::vector<int>();
 
-        std::vector<String>* elements = {};
+        std::vector<String>* elements = nullptr;
         std::vector<String>* chapterAndVerse;
         std::vector<String>* firstandPossSecond;
         int returnNumber = 0;
@@ -192,14 +202,19 @@ namespace KuwagataDLL {
             String currentRequest = requests->at(i);
 
             if (PreprocessRequest(currentRequest, elements)) {
+                delete elements;
                 continue;
             }
 
-            if (DiscernReferenceBook(&returnNumber, elements, requests->at(i))) { continue; }
+            if (DiscernReferenceBook(&returnNumber, elements, requests->at(i))) {
+                delete elements;
+                continue;
+            }
             
             if (IsCompoundReference(elements)) {
                 std::vector<int>* csv = SplitCommaSeparatedVerses(*elements);
                 returnList->insert(returnList->end(), csv->begin(), csv->end());
+                delete elements;
                 delete csv;
                 continue;
             }
@@ -221,6 +236,7 @@ namespace KuwagataDLL {
             }
 
             if (ProcessedCrossBookReferences(currentRequest, returnList)) {
+                delete elements;
                 continue;
             }
   
@@ -229,6 +245,9 @@ namespace KuwagataDLL {
             returnNumber += std::stoi(chapterAndVerse->at(0)) * 1000;
 
             if (ProcessedWholeChapter(returnList,chapterAndVerse, returnNumber)) {
+                delete firstandPossSecond;
+                delete chapterAndVerse;
+                delete elements;
                 continue;
             }
 
@@ -241,9 +260,6 @@ namespace KuwagataDLL {
                 } else {
                     HandleHyphenatedReference(firstandPossSecond, elements->at(0), returnList);
                 }
-
-                delete firstandPossSecond;
-                delete elements;
             } else {
                 returnNumber += std::stoi(chapterAndVerse->at(1));
                 if (verses.contains(std::to_string(returnNumber))) {
@@ -251,9 +267,13 @@ namespace KuwagataDLL {
                 } else {
                     AddReferenceException(VERSE_OUT_OF_RANGE, returnNumber);
                 }
-                delete chapterAndVerse;
+                
             }
+            delete firstandPossSecond;
+            delete elements;
+            delete chapterAndVerse;
         }
+        delete requests;
         return returnList;
 	}
 
@@ -355,7 +375,7 @@ namespace KuwagataDLL {
     @return A pointer to a Vector of all verse references between the two markers. NULL if the reference is nonsensical.
     */
     std::vector<int>* OSISReader::GetVersesBetweenMarkers(int startMarker, int endMarker, BibleIndexes::SelectionOption so, bool escalate) {
-		std::vector<int>* ret = new std::vector<int>();
+		
 		if (startMarker > endMarker) {
 			int temp;
 			temp = startMarker;
@@ -366,7 +386,7 @@ namespace KuwagataDLL {
         if (!verses.contains(std::to_string(startMarker))) {
             return nullptr; //Let's not waste our time iterating if the reference is garbage. 
         }
-
+        std::vector<int>* ret = new std::vector<int>();
 		for (int i = startMarker; i < endMarker; i++) {
 			if (verses.contains(std::to_string(i))) {
 				ret->push_back(i);
@@ -405,7 +425,9 @@ namespace KuwagataDLL {
 	std::vector<int>* OSISReader::SplitCommaSeparatedVerses(std::vector<String> elements) {
 		std::vector<String>* subElements = Util::split(elements[1], ',');
         String book = elements[0];
-		String chapter = Util::split(subElements->at(0), ':')->at(0);
+        std::vector<String>* otherElements = Util::split(subElements->at(0), ':');
+		String chapter = otherElements->at(0);
+        delete otherElements;
 		std::vector<int>* ret = new std::vector<int>();
 		for (int i = 0; i < subElements->size(); i++) {
 			String submittanceString;
@@ -418,6 +440,7 @@ namespace KuwagataDLL {
 			}
 			std::vector<int>* v = GetReferencesFromString(submittanceString, false);
 			ret->insert(ret->end(), v->begin(), v->end());
+            delete v;
 		}
         delete subElements;
 		return ret;

@@ -17,6 +17,7 @@ namespace KuwagataDLL {
 	class OSISReader {
 	public: 
 		OSISReader(String OSISpath);
+		~OSISReader();
 		void ChangeOSISPath(String newOSISPath);
 		std::vector<int>* GetReferencesFromString(String request, bool recursive);
 		std::vector<String>* GetVersesFromReferences(std::vector<int> verseIds);

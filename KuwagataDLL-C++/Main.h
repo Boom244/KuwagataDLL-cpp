@@ -21,6 +21,7 @@ namespace KuwagataDLL {
 		KUWAGATA_DLL static std::vector<String>* GetVerses();
 		KUWAGATA_DLL static std::vector<String>* GetReferences();
 		KUWAGATA_DLL static std::vector<int>* GetVerseIDs();
+		KUWAGATA_DLL static void Release();
 	private:
 		static std::vector<String>* verses;
 		static std::vector<String>* plainVerseReferences;

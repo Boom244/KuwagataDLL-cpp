@@ -16,10 +16,12 @@ void LoadReference(String reference) {
 }
 
 void tearDown() {
-
+	
 }
 
 void setUp()
 {
-
+	ids = nullptr;
+	verses = nullptr;
+	refs = nullptr;
 }

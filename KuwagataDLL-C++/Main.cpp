@@ -15,6 +15,14 @@ namespace KuwagataDLL {
 		reader = new OSISReader(OSISpath);
 	}
 
+	KUWAGATA_DLL void Main::Release()
+	{
+		delete verseIds;
+		delete verses;
+		delete plainVerseReferences;
+		//delete reader;
+	}
+
 	KUWAGATA_DLL std::vector<UserException> Main::GetRaisedExceptions()
 	{
 		return reader->getRaisedExceptions();
