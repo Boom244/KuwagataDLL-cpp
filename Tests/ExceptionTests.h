@@ -5,7 +5,7 @@ using namespace KuwagataDLL;
 
 void TestUnknownBookException() {
 	LoadReference("Lua 1:2-12;Genesis 1:1-12;Sol 2:1-22");
-	std::vector<UserException> exceptions = Main::GetRaisedExceptions();
+	std::vector<UserException> exceptions = Kuwagata::GetRaisedExceptions();
 	TEST_ASSERT_EQUAL(exceptions.size(), 2);
 	TEST_ASSERT_EQUAL(verses->size(), 12);
 	TEST_ASSERT_EQUAL_STRING(exceptions.at(0).asString().c_str(),
@@ -16,7 +16,7 @@ void TestUnknownBookException() {
 
 void TestUnknownChapterException() {
 	LoadReference("Genesis 2;Genesis 110");
-	std::vector<UserException> exceptions = Main::GetRaisedExceptions();
+	std::vector<UserException> exceptions = Kuwagata::GetRaisedExceptions();
 	TEST_ASSERT_EQUAL(exceptions.size(), 1);
 	TEST_ASSERT_EQUAL(verses->size(), 25);
 	TEST_ASSERT_EQUAL_STRING(exceptions.at(0).asString().c_str(),
@@ -25,7 +25,7 @@ void TestUnknownChapterException() {
 
 void TestUnknownVerseException() {
 	LoadReference("Exodus 10:1;Genesis 2:96;Leviticus 10:13");
-	std::vector<UserException> exceptions = Main::GetRaisedExceptions();
+	std::vector<UserException> exceptions = Kuwagata::GetRaisedExceptions();
 	TEST_ASSERT_EQUAL(exceptions.size(), 1);
 	TEST_ASSERT_EQUAL(verses->size(), 2);
 	TEST_ASSERT_EQUAL_STRING(exceptions.at(0).asString().c_str(),

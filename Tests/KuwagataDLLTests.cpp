@@ -1,5 +1,5 @@
 #include"unity.h"
-#include"Main.h"
+#include"Kuwagata.h"
 #include "ExceptionTests.h";
 #include "VerseTests.h"
 #include<stdio.h>
@@ -10,10 +10,10 @@ using namespace KuwagataDLL;
 
 int main(void) {
 	UNITY_BEGIN();
-	Main::Initialize("OSISBibles/kjv/verses.json");
+	Kuwagata::Initialize("OSISBibles/kjv/verses.json");
 	RunVerseTests();
 	RunExceptionTests();
-	Main::Release();
+	Kuwagata::Release();
 	return UNITY_END();
 }
 

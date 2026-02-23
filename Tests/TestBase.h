@@ -1,4 +1,4 @@
-#include"Main.h"
+#include"Kuwagata.h"
 #include"unity.h"
 #pragma once
 using namespace KuwagataDLL;
@@ -8,11 +8,11 @@ std::vector<String>* verses;
 std::vector<String>* refs;
 
 void LoadReference(String reference) {
-	Main::StartNewRequest(reference);
+	Kuwagata::StartNewRequest(reference);
 
-	ids = Main::GetVerseIDs();
-	verses = Main::GetVerses();
-	refs = Main::GetReferences();
+	ids = Kuwagata::GetVerseIDs();
+	verses = Kuwagata::GetVerses();
+	refs = Kuwagata::GetReferences();
 }
 
 void tearDown() {

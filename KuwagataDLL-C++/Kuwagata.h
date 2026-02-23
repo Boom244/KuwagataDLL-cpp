@@ -11,7 +11,7 @@
 #endif
 
 namespace KuwagataDLL {
-	class Main {
+	class Kuwagata {
 	public:
 		KUWAGATA_DLL static void Initialize(String OSISpath);
 		KUWAGATA_DLL static void ChangeOSISPath(String newOSISPath);

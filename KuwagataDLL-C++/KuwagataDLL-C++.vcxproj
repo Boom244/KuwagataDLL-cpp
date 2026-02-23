@@ -132,14 +132,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BibleIndexes.h" />
-    <ClInclude Include="Main.h" />
+    <ClInclude Include="Kuwagata.h" />
     <ClInclude Include="OSISReader.h" />
     <ClInclude Include="UserException.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BibleIndexes.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Kuwagata.cpp" />
     <ClCompile Include="OSISReader.cpp" />
     <ClCompile Include="UserException.cpp" />
     <ClCompile Include="util.cpp" />
