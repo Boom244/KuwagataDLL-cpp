@@ -7,6 +7,10 @@
 #include<nlohmann/json.hpp>
 #include "UserException.h"
 #include "BibleIndexes.h"
+#include<filesystem>
+
+#define fs std::filesystem
+
 using JSON = nlohmann::json;
 
 
@@ -27,7 +31,7 @@ namespace KuwagataDLL {
 		String getOSISPath();
 		String getVersion();
 	private:
-		String OSISPath;
+		fs::path* OSISPath;
 		String Version;
 		JSON verses;
 		std::vector<UserException>* raisedExceptions;

@@ -6,28 +6,43 @@
 #include<iostream>
 
 
-
 namespace KuwagataDLL {
+
+    void TestOSISPath(fs::path path) {
+        if (!fs::exists(path)) {
+            throw std::invalid_argument("Path passed to OSISReader does not exist!");
+        }
+        path /= "verses.json";
+        if (!fs::exists(path)) {
+            throw std::invalid_argument("Path passed to OSISReader does not contain verses.json file!");
+        }
+    }
+
+
 	OSISReader::OSISReader(String OSISpath)
 	{
-		OSISPath = OSISpath;
-		//this->Version = whatever...
+        OSISPath = new fs::path(OSISpath);
+        TestOSISPath(*OSISPath);
+        Version = OSISPath->filename().string();
         raisedExceptions = new std::vector<UserException>();
-        verses = JSON::parse(std::ifstream(OSISpath));
+        verses = JSON::parse(std::ifstream(*OSISPath / "verses.json"));
 
 
 	}
     OSISReader::~OSISReader()
     {
+        delete OSISPath;
         delete raisedExceptions;
         verses = nullptr;
+        OSISPath = nullptr;
     }
 
 	void OSISReader::ChangeOSISPath(String newOSISPath)
 	{
-		OSISPath = newOSISPath;
-		verses = JSON::parse(std::ifstream(newOSISPath));
-
+		OSISPath = new fs::path(newOSISPath);
+        TestOSISPath(*OSISPath);
+		verses = JSON::parse(std::ifstream(*OSISPath / "verses.json"));
+        Version = OSISPath->filename().string();
 	}
 
     /*
@@ -330,7 +345,7 @@ namespace KuwagataDLL {
     Gets the current path of this OSISReader.
     */
     String OSISReader::getOSISPath() {
-		return OSISPath;
+		return OSISPath->generic_string();
 	}
 
     /*

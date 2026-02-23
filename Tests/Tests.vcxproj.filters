@@ -30,6 +30,9 @@
     <ClInclude Include="TestBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OSISReaderTests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="unity.c">

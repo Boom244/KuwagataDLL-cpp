@@ -66,9 +66,9 @@ namespace KuwagataDLL {
 	/*
 	Returns the OSISReader.
 	*/
-	KUWAGATA_DLL OSISReader* Kuwagata::GetOSISReader()
+	KUWAGATA_DLL String Kuwagata::GetCurrentVersion()
 	{
-		return reader;
+		return reader->getVersion();
 	}
 
 	/*

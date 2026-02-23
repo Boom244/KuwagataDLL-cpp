@@ -132,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ExceptionTests.h" />
+    <ClInclude Include="OSISReaderTests.h" />
     <ClInclude Include="TestBase.h" />
     <ClInclude Include="unity.h" />
     <ClInclude Include="unity_internals.h" />
