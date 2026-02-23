@@ -15,14 +15,22 @@ namespace KuwagataDLL {
 		reader = new OSISReader(OSISpath);
 	}
 
+	/*
+	Releases all dynamically allocated memory held by the DLL.
+	De-initializes the current OSISReader. 
+	*/
 	KUWAGATA_DLL void Main::Release()
 	{
 		delete verseIds;
 		delete verses;
 		delete plainVerseReferences;
-		//delete reader;
+		delete reader;
 	}
 
+	/*
+	* Gets the current vector of UserExceptions.
+	* @return the vector of UserExceptions held by the current OSISReader.
+	*/
 	KUWAGATA_DLL std::vector<UserException> Main::GetRaisedExceptions()
 	{
 		return reader->getRaisedExceptions();

@@ -10,31 +10,23 @@
 namespace KuwagataDLL {
 	OSISReader::OSISReader(String OSISpath)
 	{
-		this->OSISPath = OSISpath;
+		OSISPath = OSISpath;
 		//this->Version = whatever...
         raisedExceptions = new std::vector<UserException>();
-        std::ifstream file(OSISpath);
+        verses = JSON::parse(std::ifstream(OSISpath));
 
-        try {
-            this->verses = JSON::parse(file);
-        }
-        catch (const JSON::parse_error& ex) {
-            std::cout << "Parse error at byte " << ex.byte << ": " << ex.what() << std::endl;
-        }
-        file.close();
 
 	}
     OSISReader::~OSISReader()
     {
         delete raisedExceptions;
-        //delete &this->verses;
+        verses = nullptr;
     }
 
 	void OSISReader::ChangeOSISPath(String newOSISPath)
 	{
-		this->OSISPath = newOSISPath;
-		delete &this->verses;
-		this->verses = JSON::parse(std::ifstream(newOSISPath));
+		OSISPath = newOSISPath;
+		verses = JSON::parse(std::ifstream(newOSISPath));
 
 	}
 
